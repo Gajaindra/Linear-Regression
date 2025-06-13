@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Linear Regression Playground (Editable Table)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+    <h1>Linear Regression Playground</h1>
+
+    <div class="instructions-box">
+        <p><strong>Instructions:</strong></p>
+        <ul>
+            <li>Click on the canvas to add data points (blue dots).</li>
+            <li>The red line shows the best-fit linear regression line.</li>
+            <li>The equation updates in real-time as you add points.</li>
+            <li>Hover over points to see their coordinates.</li>
+            <li>You can also edit the <strong>Data Points</strong> table directly.</li>
+            <li>Use the <strong>Calculate Stats</strong> button to update plot and compute slope, intercept, MSE, MAE, and RMSE.</li>
+            <li>Click <strong>Clear</strong> to reset the canvas and data.</li>
+        </ul>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="equation">
+        Regression Line: <span id="equation">y = --x + --</span>
+    </div>
+
+    <div class="controls">
+        <button onclick="clearCanvas()">Clear</button>
+        <button id="calcStatsBtn">Calculate Stats</button>
+    </div>
+
+    <h2>Data Points</h2>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>X</th>
+                <th>Y</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows added dynamically -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" style="text-align:center;">
+                    <button id="addRowBtn">Add New Row</button>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <h2>Statistics</h2>
+    <div id="statsDisplay">
+        <p>Slope (m): --</p>
+        <p>Intercept (b): --</p>
+        <p>Mean Squared Error (MSE): --</p>
+        <p>Mean Absolute Error (MAE): --</p>
+        <p>Root Mean Squared Error (RMSE): --</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

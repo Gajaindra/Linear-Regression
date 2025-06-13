@@ -1,0 +1,121 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    background-color: #f0f4f8;
+    padding: 20px;
+    color: #333;
+}
+
+h1 {
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.instructions-box {
+    background-color: #dff0d8;
+    border: 1px solid #a3c293;
+    padding: 12px 20px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    text-align: left;
+    width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.instructions-box ul {
+    padding-left: 20px;
+}
+
+canvas {
+    border: 2px solid #34495e;
+    margin-top: 15px;
+    cursor: crosshair;
+    background: white;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+.controls button {
+    background-color: #2980b9;
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    margin: 5px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.controls button:hover {
+    background-color: #1c5980;
+}
+
+.equation {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #c0392b;
+}
+
+#dataTable {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 350px;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+#dataTable th, #dataTable td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+#dataTable th {
+    background-color: #2980b9;
+    color: white;
+}
+
+#statsDisplay {
+    margin-top: 15px;
+    font-size: 16px;
+    color: #34495e;
+    width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #ecf0f1;
+    padding: 12px 18px;
+    border-radius: 5px;
+    box-shadow: inset 0 0 8px #bdc3c7;
+    text-align: left;
+}
+
+/* Point hover label */
+.point-label {
+    position: absolute;
+    background: rgba(255,255,255,0.9);
+    padding: 4px 7px;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #222;
+    pointer-events: none;
+    border: 1px solid #aaa;
+    user-select: none;
+}
+#dataTable tbody td {
+    text-align: center;
+}
+
+#dataTable tbody td[contenteditable="true"] {
+    background-color: #fcf8e3;
+    border: 1px solid #f0e68c;
+    cursor: text;
+}
