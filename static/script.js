@@ -10,10 +10,12 @@ const addRowBtn = document.getElementById("addRowBtn");
 canvas.width = 800;
 canvas.height = 600;
 
+const margin = 40;
+const scaleMax = 150;
+
 let points = [];
 let hoveredPoint = null;
 
-// Add mousemove listener to show point coordinates on hover
 canvas.addEventListener("mousemove", (e) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
@@ -30,25 +32,34 @@ canvas.addEventListener("mousemove", (e) => {
     draw();
 });
 
-// Click event to add points (ignore if hovering over existing point)
 canvas.addEventListener("click", (e) => {
-    if (hoveredPoint) return; // avoid adding on existing point
+    if (hoveredPoint) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+
+    let dataX = Math.round((x - margin) * scaleMax / (canvas.width - 2 * margin));
+    let dataY = Math.round((canvas.height - margin - y) * scaleMax / (canvas.height - 2 * margin));
+
+    if (dataX < 0 || dataX > scaleMax || dataY < 0 || dataY > scaleMax) {
+        alert("Please click within the 0 to 150 range.");
+        return;
+    }
+
+    // Convert back to canvas coordinates
+    x = margin + dataX * (canvas.width - 2 * margin) / scaleMax;
+    y = canvas.height - margin - dataY * (canvas.height - 2 * margin) / scaleMax;
 
     points.push({ x, y });
     updateDataTableFromPoints();
     draw();
 });
 
-// Add new empty editable row to table
 addRowBtn.addEventListener("click", () => {
     addEmptyRow();
 });
 
-// Add an empty editable row to the table
 function addEmptyRow() {
     let tr = document.createElement("tr");
     let rowNum = dataTableBody.rows.length + 1;
@@ -61,12 +72,11 @@ function addEmptyRow() {
     dataTableBody.appendChild(tr);
 }
 
-// Update table from current points array
 function updateDataTableFromPoints() {
     dataTableBody.innerHTML = "";
     points.forEach((p, i) => {
-        let xVal = Math.round(p.x - 40);
-        let yVal = Math.round(canvas.height - 40 - p.y);
+        let xVal = Math.round((p.x - margin) * scaleMax / (canvas.width - 2 * margin));
+        let yVal = Math.round((canvas.height - margin - p.y) * scaleMax / (canvas.height - 2 * margin));
         let tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${i + 1}</td>
@@ -77,7 +87,6 @@ function updateDataTableFromPoints() {
     });
 }
 
-// Read points from the table (validate inputs)
 function updatePointsFromTable() {
     points = [];
     let rows = dataTableBody.querySelectorAll("tr");
@@ -91,26 +100,23 @@ function updatePointsFromTable() {
         let xNum = Number(xStr);
         let yNum = Number(yStr);
 
-        if (isNaN(xNum) || isNaN(yNum)) {
-            alert(`Row ${i + 1} has invalid number(s). Please enter valid numeric X and Y.`);
+        if (isNaN(xNum) || isNaN(yNum) || xNum < 0 || xNum > scaleMax || yNum < 0 || yNum > scaleMax) {
+            alert(`Row ${i + 1} has invalid X or Y (must be 0-150).`);
             return false;
         }
 
-        // Convert back to canvas coords:
-        let canvasX = xNum + 40;
-        let canvasY = canvas.height - 40 - yNum;
+        let canvasX = margin + xNum * (canvas.width - 2 * margin) / scaleMax;
+        let canvasY = canvas.height - margin - yNum * (canvas.height - 2 * margin) / scaleMax;
 
         points.push({ x: canvasX, y: canvasY });
     }
     return true;
 }
 
-// Draw function: axes, points, hovered label, regression line
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawAxes();
 
-    // Draw all points
     for (let p of points) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
@@ -121,7 +127,6 @@ function draw() {
             ctx.strokeStyle = "orange";
             ctx.lineWidth = 3;
             ctx.stroke();
-
             drawPointLabel(p);
         }
     }
@@ -135,52 +140,49 @@ function draw() {
     }
 }
 
-// Draw coordinate axes and ticks with labels
 function drawAxes() {
     ctx.strokeStyle = "#444";
     ctx.lineWidth = 1;
 
-    // X-axis line
     ctx.beginPath();
-    ctx.moveTo(0, canvas.height - 40);
-    ctx.lineTo(canvas.width, canvas.height - 40);
+    ctx.moveTo(margin, 0);
+    ctx.lineTo(margin, canvas.height - margin);
     ctx.stroke();
 
-    // Y-axis line
     ctx.beginPath();
-    ctx.moveTo(40, 0);
-    ctx.lineTo(40, canvas.height);
+    ctx.moveTo(margin, canvas.height - margin);
+    ctx.lineTo(canvas.width, canvas.height - margin);
     ctx.stroke();
 
-    // X axis labels every 100 px
     ctx.fillStyle = "#333";
     ctx.font = "12px Arial";
-    for (let x = 40; x <= canvas.width; x += 100) {
-        ctx.fillText(x - 40, x - 10, canvas.height - 20);
+
+    for (let i = 0; i <= scaleMax; i += 25) {
+        let x = margin + i * (canvas.width - 2 * margin) / scaleMax;
+        let y = canvas.height - margin - i * (canvas.height - 2 * margin) / scaleMax;
+
+        ctx.fillText(i, x - 5, canvas.height - 20);
         ctx.beginPath();
-        ctx.moveTo(x, canvas.height - 40);
-        ctx.lineTo(x, canvas.height - 35);
+        ctx.moveTo(x, canvas.height - margin);
+        ctx.lineTo(x, canvas.height - margin + 5);
+        ctx.stroke();
+
+        ctx.fillText(i, 5, y + 5);
+        ctx.beginPath();
+        ctx.moveTo(margin - 5, y);
+        ctx.lineTo(margin, y);
         ctx.stroke();
     }
 
-    // Y axis labels every 100 px
-    for (let y = canvas.height - 40; y >= 0; y -= 100) {
-        ctx.fillText(canvas.height - 40 - y, 5, y + 5);
-        ctx.beginPath();
-        ctx.moveTo(40, y);
-        ctx.lineTo(45, y);
-        ctx.stroke();
-    }
-
-    // Axis titles
-    ctx.font = "14px Arial";
     ctx.fillText("X", canvas.width - 20, canvas.height - 20);
     ctx.fillText("Y", 10, 20);
 }
 
-// Draw small tooltip near hovered point showing coordinates
 function drawPointLabel(p) {
-    const label = `(${Math.round(p.x - 40)}, ${Math.round(canvas.height - 40 - p.y)})`;
+    let xVal = Math.round((p.x - margin) * scaleMax / (canvas.width - 2 * margin));
+    let yVal = Math.round((canvas.height - margin - p.y) * scaleMax / (canvas.height - 2 * margin));
+    const label = `(${xVal}, ${yVal})`;
+
     ctx.fillStyle = "#fff";
     ctx.strokeStyle = "#555";
     ctx.lineWidth = 1;
@@ -189,53 +191,54 @@ function drawPointLabel(p) {
     let labelX = p.x + 10;
     let labelY = p.y - 10;
 
-    // Background rectangle for label
     const width = ctx.measureText(label).width + 10;
     const height = 20;
     ctx.fillRect(labelX - 5, labelY - height + 5, width, height);
     ctx.strokeRect(labelX - 5, labelY - height + 5, width, height);
 
-    // Text label
     ctx.fillStyle = "#000";
     ctx.fillText(label, labelX, labelY);
 }
 
-// Linear regression calculation: returns slope and intercept
 function linearRegression(pts) {
-    let xs = pts.map(p => p.x - 40);
-    let ys = pts.map(p => canvas.height - 40 - p.y);
+    let xs = pts.map(p => (p.x - margin) * scaleMax / (canvas.width - 2 * margin));
+    let ys = pts.map(p => (canvas.height - margin - p.y) * scaleMax / (canvas.height - 2 * margin));
 
     let n = pts.length;
-    let sumX = xs.reduce((a,b) => a+b, 0);
-    let sumY = ys.reduce((a,b) => a+b, 0);
-    let sumXY = xs.reduce((acc, x, i) => acc + x*ys[i], 0);
-    let sumX2 = xs.reduce((acc, x) => acc + x*x, 0);
+    let sumX = xs.reduce((a, b) => a + b, 0);
+    let sumY = ys.reduce((a, b) => a + b, 0);
+    let sumXY = xs.reduce((acc, x, i) => acc + x * ys[i], 0);
+    let sumX2 = xs.reduce((acc, x) => acc + x * x, 0);
 
-    let denom = (n*sumX2 - sumX*sumX);
+    let denom = (n * sumX2 - sumX * sumX);
     if (denom === 0) return { slope: 0, intercept: ys[0] || 0 };
 
-    let slope = (n*sumXY - sumX*sumY) / denom;
-    let intercept = (sumY - slope*sumX) / n;
+    let slope = (n * sumXY - sumX * sumY) / denom;
+    let intercept = (sumY - slope * sumX) / n;
 
     return { slope, intercept };
 }
 
-// Draw regression line on canvas (red line)
 function drawLine(slope, intercept) {
-    let x1 = 40;
-    let y1 = canvas.height - 40 - (slope * 0 + intercept);
-    let x2 = canvas.width;
-    let y2 = canvas.height - 40 - (slope * (canvas.width - 40) + intercept);
+    let x1 = 0;
+    let y1 = slope * x1 + intercept;
+
+    let x2 = scaleMax;
+    let y2 = slope * x2 + intercept;
+
+    let canvasX1 = margin + x1 * (canvas.width - 2 * margin) / scaleMax;
+    let canvasY1 = canvas.height - margin - y1 * (canvas.height - 2 * margin) / scaleMax;
+    let canvasX2 = margin + x2 * (canvas.width - 2 * margin) / scaleMax;
+    let canvasY2 = canvas.height - margin - y2 * (canvas.height - 2 * margin) / scaleMax;
 
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    ctx.moveTo(canvasX1, canvasY1);
+    ctx.lineTo(canvasX2, canvasY2);
     ctx.strokeStyle = "red";
     ctx.lineWidth = 2;
     ctx.stroke();
 }
 
-// Update the regression equation text
 function updateEquation(slope, intercept) {
     let slopeText = slope.toFixed(2);
     let interceptText = intercept.toFixed(2);
@@ -244,7 +247,6 @@ function updateEquation(slope, intercept) {
     equationSpan.textContent = `y = ${slopeText}x ${sign} ${interceptAbs}`;
 }
 
-// Clear all points and reset display
 function clearCanvas() {
     points = [];
     updateDataTableFromPoints();
@@ -259,7 +261,6 @@ function clearCanvas() {
     draw();
 }
 
-// Calculate and display regression stats when button clicked
 calcStatsBtn.addEventListener("click", () => {
     if (dataTableBody.rows.length < 2) {
         alert("Please enter at least 2 data points.");
@@ -267,7 +268,6 @@ calcStatsBtn.addEventListener("click", () => {
     }
 
     if (!updatePointsFromTable()) return;
-
     if (points.length < 2) {
         alert("Please enter at least 2 valid data points.");
         return;
@@ -275,9 +275,8 @@ calcStatsBtn.addEventListener("click", () => {
 
     const { slope, intercept } = linearRegression(points);
 
-    let xs = points.map(p => p.x - 40);
-    let ys = points.map(p => canvas.height - 40 - p.y);
-
+    let xs = points.map(p => (p.x - margin) * scaleMax / (canvas.width - 2 * margin));
+    let ys = points.map(p => (canvas.height - margin - p.y) * scaleMax / (canvas.height - 2 * margin));
     let preds = xs.map(x => slope * x + intercept);
 
     let errors = preds.map((pred, i) => pred - ys[i]);
@@ -299,6 +298,5 @@ calcStatsBtn.addEventListener("click", () => {
     draw();
 });
 
-// Initialize with empty row
 clearCanvas();
 addEmptyRow();
